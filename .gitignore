@@ -1,33 +1,83 @@
-HELP.md
-target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+# Miscellaneous
+*.java.hsp
+*.sonarj
+*.sw*
+.DS_Store
+build.sh
+integration-repo
+ivy-cache
+argfile*
+activemq-data/
+classes/
 
-### STS ###
-.apt_generated
+# OSX
+.DS_Store
+.AppleDouble
+.LSOverride
+
+## Java
+# either the 3rd party diff or IDEA:
+*.java.orig
+
+# Package Files
+**/build/libs/*.jar
+*.war
+*.ear
+
+#Gradle
+.gradle
+.gradletasknamecache
+/build
+buildSrc/build
+/spring-*/build
+/framework-bom/build
+/framework-docs/build
+/integration-tests/build
+/src/asciidoc/build
+spring-test/test-output/
+.gradle
+*/.gradle
+
+# Maven artifacts
+pom.xml
+/target/
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Log files
+jxl.log
+jmx.log
+derby.log
+*.log
+*.log.gz
+*.log-*.gz
+logs/
+
+# Eclipse artifacts, including WTP generated manifests
+bin
 .classpath
-.factorypath
 .project
 .settings
 .springBeans
-.sts4-cache
+spring-*/src/main/java/META-INF/MANIFEST.MF
 
-### IntelliJ IDEA ###
-.idea
-*.iws
+# IDEA
 *.iml
 *.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
-.vscode/
+*.iws
+.idea
+out
+test-output
+atlassian-ide-plugin.xml
+.idea/
+out/
+output/
+**/build/
