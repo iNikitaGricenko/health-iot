@@ -1,7 +1,6 @@
 # Health-IoT ``Portfolio project``
 Portfolio Project IoT backend service
 
-![build](https://img.shields.io/github/actions/workflow/status/iNikitaGricenko/health-iot/build.yml?style=for-the-badge/badge.svg)
 <br>
 
 # Technologies
