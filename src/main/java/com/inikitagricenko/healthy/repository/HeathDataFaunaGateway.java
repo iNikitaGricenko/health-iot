@@ -5,11 +5,13 @@ import com.faunadb.client.query.Expr;
 import com.faunadb.client.query.Language;
 import com.faunadb.client.query.Pagination;
 import com.faunadb.client.types.Value;
+import com.inikitagricenko.healthy.annotation.FaunaRecord;
 import com.inikitagricenko.healthy.model.Coordinates;
 import com.inikitagricenko.healthy.model.HealthData;
 import com.inikitagricenko.healthy.service.IFaunaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
@@ -31,7 +33,7 @@ public class HeathDataFaunaGateway implements HealthRepository {
 			Coordinates coordinates = data.getCoordinates();
 			FaunaClient faunaClient = faunaService.getFaunaClient(coordinates.getCountryCode());
 
-			Expr collection = Collection("healthdata");
+			Expr collection = Collection(getCollectionName());
 			Expr create = Create(collection, Obj("data", Obj(getInsertValues(data))));
 			Value queryResponse = faunaClient.query(create).get();
 
@@ -50,7 +52,7 @@ public class HeathDataFaunaGateway implements HealthRepository {
 
 			List<Expr> fieldsToSelect = getFieldsToSelect();
 
-			Expr collection = Collection("healthdata");
+			Expr collection = Collection(getCollectionName());
 			Expr ref = Ref(collection, id);
 
 			Expr select = Select(Arr(fieldsToSelect), Var("data"));
@@ -69,7 +71,7 @@ public class HeathDataFaunaGateway implements HealthRepository {
 		try {
 			FaunaClient faunaClient = faunaService.getFaunaClient(countryCode);
 
-			Expr collection = Collection("healthdata");
+			Expr collection = Collection(getCollectionName());
 			Expr documents = Documents(collection);
 
 			Pagination paginate = Paginate(documents);
@@ -81,6 +83,15 @@ public class HeathDataFaunaGateway implements HealthRepository {
 		} catch (MalformedURLException | ExecutionException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private String getCollectionName() {
+		FaunaRecord annotation = HealthData.class.getAnnotation(FaunaRecord.class);
+		String index = Optional.of(annotation.index()).filter(Strings::isEmpty).orElse(annotation.collection());
+		if (index.isEmpty()) {
+			index = HealthData.class.getSimpleName().toLowerCase();
+		}
+		return index;
 	}
 
 	private Map<String, Expr> getInsertValues(HealthData data) {
