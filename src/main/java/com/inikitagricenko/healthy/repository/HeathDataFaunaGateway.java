@@ -33,8 +33,7 @@ public class HeathDataFaunaGateway implements HealthRepository {
 			Coordinates coordinates = data.getCoordinates();
 			FaunaClient faunaClient = faunaService.getFaunaClient(coordinates.getCountryCode());
 
-			Expr collection = Collection(getCollectionName());
-			Expr create = Create(collection, Obj("data", Obj(getInsertValues(data))));
+			Expr create = Create(getCollection(), Obj("data", Obj(getInsertValues(data))));
 			Value queryResponse = faunaClient.query(create).get();
 
 			log.info("Query response received from Fauna: {}", queryResponse);
@@ -52,8 +51,7 @@ public class HeathDataFaunaGateway implements HealthRepository {
 
 			List<Expr> fieldsToSelect = getFieldsToSelect();
 
-			Expr collection = Collection(getCollectionName());
-			Expr ref = Ref(collection, id);
+			Expr ref = Ref(getCollection(), id);
 
 			Expr select = Select(Arr(fieldsToSelect), Var("data"));
 			Expr obj = Obj("data", Var("data"), "userId", Get(select));
@@ -71,8 +69,7 @@ public class HeathDataFaunaGateway implements HealthRepository {
 		try {
 			FaunaClient faunaClient = faunaService.getFaunaClient(countryCode);
 
-			Expr collection = Collection(getCollectionName());
-			Expr documents = Documents(collection);
+			Expr documents = Documents(getCollection());
 
 			Pagination paginate = Paginate(documents);
 
@@ -83,6 +80,10 @@ public class HeathDataFaunaGateway implements HealthRepository {
 		} catch (MalformedURLException | ExecutionException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private Expr getCollection() {
+		return Collection(getCollectionName());
 	}
 
 	private String getCollectionName() {
