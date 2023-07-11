@@ -1,5 +1,6 @@
 package com.inikitagricenko.healthy.model;
 
+import com.inikitagricenko.healthy.annotation.FaunaRecord;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import javax.validation.constraints.Size;
 import java.time.ZonedDateTime;
 
 @Data
+@FaunaRecord(index = "healthy")
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class HealthData {
