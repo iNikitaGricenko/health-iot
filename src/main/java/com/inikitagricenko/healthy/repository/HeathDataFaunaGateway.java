@@ -96,8 +96,7 @@ public class HeathDataFaunaGateway implements HealthRepository {
 	}
 
 	private Map<String, Expr> getInsertValues(HealthData data) {
-		List<Field> fieldsToInsert = Arrays.stream(data.getClass().getDeclaredFields())
-				.collect(Collectors.toList());
+		List<Field> fieldsToInsert = Arrays.stream(data.getClass().getDeclaredFields()).collect(Collectors.toList());
 		return fieldsToInsert.stream().collect(Collectors.toMap(Field::getName, field -> {
 			Object value = null;
 			try {
