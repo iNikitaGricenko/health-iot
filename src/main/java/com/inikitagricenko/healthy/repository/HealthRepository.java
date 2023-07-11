@@ -14,6 +14,5 @@ public interface HealthRepository {
 
 	Optional<HealthData> findById(String userId, String countryCode);
 
-	List<HealthData> findAll();
-
+	List<HealthData> findAll(String countryCode);
 }

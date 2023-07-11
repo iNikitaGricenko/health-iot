@@ -3,6 +3,7 @@ package com.inikitagricenko.healthy.repository;
 import com.faunadb.client.FaunaClient;
 import com.faunadb.client.query.Expr;
 import com.faunadb.client.query.Language;
+import com.faunadb.client.query.Pagination;
 import com.faunadb.client.types.Value;
 import com.inikitagricenko.healthy.model.Coordinates;
 import com.inikitagricenko.healthy.model.HealthData;
@@ -43,14 +44,14 @@ public class HeathDataFaunaGateway implements HealthRepository {
 	}
 
 	@Override
-	public Optional<HealthData> findById(String userId, String countryCode) {
+	public Optional<HealthData> findById(String id, String countryCode) {
 		try {
 			FaunaClient faunaClient = faunaService.getFaunaClient(countryCode);
 
 			List<Expr> fieldsToSelect = getFieldsToSelect();
 
 			Expr collection = Collection("healthdata");
-			Expr ref = Ref(collection, userId);
+			Expr ref = Ref(collection, id);
 
 			Expr select = Select(Arr(fieldsToSelect), Var("data"));
 			Expr obj = Obj("data", Var("data"), "userId", Get(select));
@@ -64,8 +65,22 @@ public class HeathDataFaunaGateway implements HealthRepository {
 	}
 
 	@Override
-	public List<HealthData> findAll() {
-		return null;
+	public List<HealthData> findAll(String countryCode) {
+		try {
+			FaunaClient faunaClient = faunaService.getFaunaClient(countryCode);
+
+			Expr collection = Collection("healthdata");
+			Expr documents = Documents(collection);
+
+			Pagination paginate = Paginate(documents);
+
+			Expr map = Map(paginate, Lambda(Arr(Value("extra"), Value("ref")), Obj("healthdata", Get(Var("ref")))));
+			Value result = faunaClient.query(map).get();
+
+			return new ArrayList<>(result.at("data").asCollectionOf(HealthData.class).get());
+		} catch (MalformedURLException | ExecutionException | InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private Map<String, Expr> getInsertValues(HealthData data) {
