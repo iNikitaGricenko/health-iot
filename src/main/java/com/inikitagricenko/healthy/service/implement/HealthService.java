@@ -25,19 +25,19 @@ public class HealthService implements IHealthProcessService, IHealthOutputServic
 
 	@AOPLog
 	@Override
-	public void process(HealthData healthData) {
+	public String process(HealthData healthData) {
 		Coordinates coordinates = healthData.getCoordinates();
 		coordinates = geoLocationService.getCoordinates(coordinates.getLatitude(), coordinates.getLongitude());
 		healthData.setCoordinates(coordinates);
-		healthData.setTimestamp(ZonedDateTime.now(ZoneId.of(coordinates.getTimezoneId())));
+		healthData.setTimestamp(ZonedDateTime.now(ZoneId.of(coordinates.getTimezoneId())).toInstant());
 
-		healthRepository.save(healthData);
+		return healthRepository.save(healthData).getRef();
 	}
 
 	@AOPLog
 	@Override
-	public HealthData responseHealth(String userId, Coordinates coordinates) {
+	public HealthData responseHealth(String ref, Coordinates coordinates) {
 		String countryCode = geoLocationService.getCoordinates(coordinates.getLatitude(), coordinates.getLongitude()).getCountryCode();
-		return healthRepository.findById(userId, countryCode).orElseThrow(DataNotFound::new);
+		return healthRepository.findById(ref, countryCode).orElseThrow(DataNotFound::new);
 	}
 }

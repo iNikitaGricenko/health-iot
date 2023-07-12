@@ -1,5 +1,6 @@
 package com.inikitagricenko.healthy.repository;
 
+import com.inikitagricenko.healthy.model.HealthData;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.Optional;
 @Repository
 public interface FaunaRepository<T> {
 
-	T save(T data);
+	HealthData save(T data);
 
 	Optional<T> findById(String id, String countryCode);
 

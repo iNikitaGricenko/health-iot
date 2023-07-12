@@ -4,6 +4,6 @@ import com.inikitagricenko.healthy.model.HealthData;
 
 public interface IHealthProcessService {
 
-	void process(HealthData healthData);
+	String process(HealthData healthData);
 
 }

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
+import java.util.Map;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
@@ -37,11 +38,15 @@ public class HeathDataFaunaGateway implements HealthRepository {
 			FaunaClient faunaClient = faunaService.getFaunaClient(coordinates.getCountryCode());
 
 			Expr create = Create(getCollection(), Obj("data", Obj(getInsertValues(data))));
-			Value queryResponse = faunaClient.query(create).get();
+			Value result = faunaClient.query(create).get();
 
-			log.info("Query response received from Fauna: {}", queryResponse);
+			log.info("Query response received from Fauna: {}", result);
 
-			return queryResponse.get(HealthData.class);
+			HealthData healthData = result.at("data").to(HealthData.class).get();
+			String ref = ((Value.RefV) result.at("ref").to(Object.class).get()).getId();
+			healthData.setRef(ref);
+
+			return healthData;
 		} catch (MalformedURLException | ExecutionException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
@@ -54,14 +59,11 @@ public class HeathDataFaunaGateway implements HealthRepository {
 
 			List<Expr> fieldsToSelect = getFieldsToSelect();
 
-			Expr ref = Ref(getCollection(), id);
+			Expr ref = Ref(getCollection(), Value(id));
 
-			Expr select = Select(Arr(fieldsToSelect), Var("data"));
-			Expr obj = Obj("data", Var("data"), "userId", Get(select));
-			Expr let = Let("data", Get(ref)).in(obj);
+			Value result = faunaClient.query(Get(ref)).get();
 
-			Value result = faunaClient.query(let).get();
-			return Optional.ofNullable(result.get(HealthData.class));
+			return result.at("data").to(HealthData.class).getOptional();
 		} catch (MalformedURLException | ExecutionException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
