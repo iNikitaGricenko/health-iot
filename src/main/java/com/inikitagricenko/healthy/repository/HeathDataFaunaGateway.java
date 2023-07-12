@@ -4,11 +4,15 @@ import com.faunadb.client.FaunaClient;
 import com.faunadb.client.query.Expr;
 import com.faunadb.client.query.Language;
 import com.faunadb.client.query.Pagination;
+import com.faunadb.client.types.FaunaField;
 import com.faunadb.client.types.Value;
 import com.inikitagricenko.healthy.annotation.FaunaRecord;
 import com.inikitagricenko.healthy.model.Coordinates;
 import com.inikitagricenko.healthy.model.HealthData;
 import com.inikitagricenko.healthy.service.IFaunaService;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
@@ -31,6 +35,27 @@ public class HeathDataFaunaGateway implements HealthRepository {
 
 	private final IFaunaService faunaService;
 
+	@Data
+	@AllArgsConstructor
+	@NoArgsConstructor
+	public static class FaunaResponse {
+
+		@FaunaField
+		Value.RefV ref;
+
+		@FaunaField
+		Long ts;
+
+		@FaunaField
+		HealthData data;
+
+		public HealthData convert() {
+			data.setRef(ref.getId());
+			return data;
+		}
+
+	}
+
 	@Override
 	public HealthData save(HealthData data) {
 		try {
@@ -43,7 +68,7 @@ public class HeathDataFaunaGateway implements HealthRepository {
 			log.info("Query response received from Fauna: {}", result);
 
 			HealthData healthData = result.at("data").to(HealthData.class).get();
-			String ref = ((Value.RefV) result.at("ref").to(Object.class).get()).getId();
+			String ref = result.at("ref").to(Value.RefV.class).get().getId();
 			healthData.setRef(ref);
 
 			return healthData;
@@ -53,7 +78,7 @@ public class HeathDataFaunaGateway implements HealthRepository {
 	}
 
 	@Override
-	public Optional<HealthData> findById(String id, String countryCode) {
+	public Optional<FaunaResponse> findById(String id, String countryCode) {
 		try {
 			FaunaClient faunaClient = faunaService.getFaunaClient(countryCode);
 
@@ -63,23 +88,48 @@ public class HeathDataFaunaGateway implements HealthRepository {
 
 			Value result = faunaClient.query(Get(ref)).get();
 
-			return result.at("data").to(HealthData.class).getOptional();
+			return result.at("data").to(FaunaResponse.class).getOptional();
 		} catch (MalformedURLException | ExecutionException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	@Override
-	public List<HealthData> findAll(String countryCode) {
+	public List<FaunaResponse> findAll(String countryCode) {
 		try {
 			FaunaClient faunaClient = faunaService.getFaunaClient(countryCode);
 
-			Expr documents = Documents(getCollection());
+			String indexName = getCollectionName() + "-all";
+			Expr index = Index(indexName);
+			Pagination paginate = Paginate(Match(index));
 
-			Pagination paginate = Paginate(documents);
+			Expr lambda = Lambda("X", Get(Var("X")));
 
-			Expr map = Map(paginate, Lambda(Arr(Value("extra"), Value("ref")), Obj("healthdata", Get(Var("ref")))));
-			Value result = faunaClient.query(map).get();
+			Value result = faunaClient.query(Map(paginate, lambda)).get();
+
+			return new ArrayList<>(result.at("data").asCollectionOf(FaunaResponse.class).get());
+		} catch (MalformedURLException | ExecutionException | InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public List<HealthData> findAllByUser(String userId, String countryCode) {
+		try {
+			FaunaClient faunaClient = faunaService.getFaunaClient(countryCode);
+
+			String indexName = getCollectionName() + "-all-by-user";
+			Expr index = Index(indexName);
+
+			Pagination paginate = Paginate(Match(index));
+			Expr lambda = Lambda(
+					Arr(Value("extra"), Value(userId)),
+					Obj(
+							"ref", Get(Var("ref")),
+							"data", Get(Var("data"))
+			      ));
+
+			Value result = faunaClient.query(Map(paginate, lambda)).get();
 
 			return new ArrayList<>(result.at("data").asCollectionOf(HealthData.class).get());
 		} catch (MalformedURLException | ExecutionException | InterruptedException e) {

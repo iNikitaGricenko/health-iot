@@ -5,6 +5,8 @@ import com.inikitagricenko.healthy.exception.DataNotFound;
 import com.inikitagricenko.healthy.model.Coordinates;
 import com.inikitagricenko.healthy.model.HealthData;
 import com.inikitagricenko.healthy.repository.HealthRepository;
+import com.inikitagricenko.healthy.repository.HeathDataFaunaGateway;
+import com.inikitagricenko.healthy.repository.HeathDataFaunaGateway.FaunaResponse;
 import com.inikitagricenko.healthy.service.IGeoLocationService;
 import com.inikitagricenko.healthy.service.IHealthOutputService;
 import com.inikitagricenko.healthy.service.IHealthProcessService;
@@ -14,6 +16,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -38,6 +42,12 @@ public class HealthService implements IHealthProcessService, IHealthOutputServic
 	@Override
 	public HealthData responseHealth(String ref, Coordinates coordinates) {
 		String countryCode = geoLocationService.getCoordinates(coordinates.getLatitude(), coordinates.getLongitude()).getCountryCode();
-		return healthRepository.findById(ref, countryCode).orElseThrow(DataNotFound::new);
+		return healthRepository.findById(ref, countryCode).orElseThrow(DataNotFound::new).convert();
+	}
+
+	@Override
+	public List<HealthData> responseAllHealth(Coordinates coordinates) {
+		String countryCode = geoLocationService.getCoordinates(coordinates.getLatitude(), coordinates.getLongitude()).getCountryCode();
+		return healthRepository.findAll(countryCode).stream().map(FaunaResponse::convert).collect(Collectors.toList());
 	}
 }

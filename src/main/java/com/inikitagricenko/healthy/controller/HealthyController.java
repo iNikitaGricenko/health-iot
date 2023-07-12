@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @RestController
 @RequestMapping("/health")
@@ -28,6 +29,11 @@ public class HealthyController {
 	@GetMapping(value = "/{ref}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public HealthData get(@Valid @NotNull @NotBlank @PathVariable("ref") String ref, @Valid @RequestBody Coordinates coordinates) {
 		return iHealthOutputService.responseHealth(ref, coordinates);
+	}
+
+	@GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+	public List<HealthData> getAll(@Valid @RequestBody Coordinates coordinates) {
+		return iHealthOutputService.responseAllHealth(coordinates);
 	}
 
 }

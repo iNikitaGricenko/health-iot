@@ -11,7 +11,7 @@ public interface FaunaRepository<T> {
 
 	HealthData save(T data);
 
-	Optional<T> findById(String id, String countryCode);
+	Optional<HeathDataFaunaGateway.FaunaResponse> findById(String id, String countryCode);
 
-	List<T> findAll(String countryCode);
+	List<HeathDataFaunaGateway.FaunaResponse> findAll(String countryCode);
 }
