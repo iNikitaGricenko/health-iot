@@ -1,5 +1,8 @@
 package com.inikitagricenko.healthy.service.implement;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.inikitagricenko.healthy.annotation.AOPLog;
 import com.inikitagricenko.healthy.model.Coordinates;
@@ -40,12 +43,14 @@ public class DefaultGeoLocationService implements IGeoLocationService {
 	@AOPLog
 	private Coordinates extractRegion(CompletableFuture<HttpResponse<String>> geocodingResponse) {
 		try {
-			String body = geocodingResponse.get().body();
+			HttpResponse<String> response = geocodingResponse.get();
+			String body = response.body();
 
 			ObjectMapper objectMapper = new ObjectMapper();
+			objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-			return objectMapper.convertValue(body, Coordinates.class);
-		} catch (InterruptedException | ExecutionException e) {
+			return objectMapper.readValue(body, Coordinates.class);
+		} catch (InterruptedException | ExecutionException | JsonProcessingException e) {
 			throw new RuntimeException(e);
 		}
 	}

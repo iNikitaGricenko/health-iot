@@ -12,6 +12,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -25,6 +28,8 @@ public class HealthService implements IHealthProcessService, IHealthOutputServic
 	public void process(HealthData healthData) {
 		Coordinates coordinates = healthData.getCoordinates();
 		coordinates = geoLocationService.getCoordinates(coordinates.getLatitude(), coordinates.getLongitude());
+		healthData.setCoordinates(coordinates);
+		healthData.setTimestamp(ZonedDateTime.now(ZoneId.of(coordinates.getTimezoneId())));
 
 		healthRepository.save(healthData);
 	}

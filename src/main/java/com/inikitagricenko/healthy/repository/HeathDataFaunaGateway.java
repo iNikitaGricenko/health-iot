@@ -12,16 +12,19 @@ import com.inikitagricenko.healthy.service.IFaunaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.stereotype.Repository;
 
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.faunadb.client.query.Language.*;
 
 @Slf4j
+@Repository
 @RequiredArgsConstructor
 public class HeathDataFaunaGateway implements HealthRepository {
 
@@ -88,7 +91,7 @@ public class HeathDataFaunaGateway implements HealthRepository {
 
 	private String getCollectionName() {
 		FaunaRecord annotation = HealthData.class.getAnnotation(FaunaRecord.class);
-		String index = Optional.of(annotation.index()).filter(Strings::isEmpty).orElse(annotation.collection());
+		String index = Optional.of(annotation.index()).filter(Predicate.not(Strings::isEmpty)).orElse(annotation.collection());
 		if (index.isEmpty()) {
 			index = HealthData.class.getSimpleName().toLowerCase();
 		}
@@ -100,7 +103,8 @@ public class HeathDataFaunaGateway implements HealthRepository {
 		return fieldsToInsert.stream().collect(Collectors.toMap(Field::getName, field -> {
 			Object value = null;
 			try {
-				value = field.get(field.getType());
+				field.setAccessible(true);
+				value = field.get(data);
 			} catch (IllegalAccessException ignore) { }
 			return Value(value);
 		}));

@@ -3,6 +3,7 @@ package com.inikitagricenko.healthy.model;
 import com.inikitagricenko.healthy.annotation.FaunaRecord;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 import javax.validation.constraints.NotNull;
@@ -12,25 +13,25 @@ import java.time.ZonedDateTime;
 @Data
 @FaunaRecord(index = "healthy")
 @AllArgsConstructor
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class HealthData {
 
 	@NotNull
 	@Size(min = 15)
-	private final String userId;
+	private String userId;
 
 	@NotNull
-	private final float temperature;
+	private float temperature;
 	@NotNull
-	private final float pulseRate;
+	private float pulseRate;
 
 	@NotNull
-	private final int bpSystolic;
+	private int bpSystolic;
 	@NotNull
-	private final int bpDiastolic;
+	private int bpDiastolic;
 
 	@NotNull
-	private final Coordinates coordinates;
+	private Coordinates coordinates;
 
 	private ZonedDateTime timestamp;
 
