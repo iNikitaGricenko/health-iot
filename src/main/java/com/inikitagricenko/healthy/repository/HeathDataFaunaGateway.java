@@ -78,7 +78,7 @@ public class HeathDataFaunaGateway implements HealthRepository {
 	}
 
 	@Override
-	public Optional<FaunaResponse> findById(String id, String countryCode) {
+	public Optional<HealthData> findById(String id, String countryCode) {
 		try {
 			FaunaClient faunaClient = faunaService.getFaunaClient(countryCode);
 
@@ -88,14 +88,14 @@ public class HeathDataFaunaGateway implements HealthRepository {
 
 			Value result = faunaClient.query(Get(ref)).get();
 
-			return result.at("data").to(FaunaResponse.class).getOptional();
+			return result.at("data").to(FaunaResponse.class).getOptional().map(FaunaResponse::convert);
 		} catch (MalformedURLException | ExecutionException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	@Override
-	public List<FaunaResponse> findAll(String countryCode) {
+	public List<HealthData> findAll(String countryCode) {
 		try {
 			FaunaClient faunaClient = faunaService.getFaunaClient(countryCode);
 
@@ -107,7 +107,7 @@ public class HeathDataFaunaGateway implements HealthRepository {
 
 			Value result = faunaClient.query(Map(paginate, lambda)).get();
 
-			return new ArrayList<>(result.at("data").asCollectionOf(FaunaResponse.class).get());
+			return result.at("data").asCollectionOf(FaunaResponse.class).get().stream().map(FaunaResponse::convert).collect(Collectors.toList());
 		} catch (MalformedURLException | ExecutionException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
@@ -121,17 +121,12 @@ public class HeathDataFaunaGateway implements HealthRepository {
 			String indexName = getCollectionName() + "-all-by-user";
 			Expr index = Index(indexName);
 
-			Pagination paginate = Paginate(Match(index));
-			Expr lambda = Lambda(
-					Arr(Value("extra"), Value(userId)),
-					Obj(
-							"ref", Get(Var("ref")),
-							"data", Get(Var("data"))
-			      ));
+			Pagination paginate = Paginate(Match(index, Value(userId)));
+			Expr lambda = Lambda("X", Get(Var("X")));
 
 			Value result = faunaClient.query(Map(paginate, lambda)).get();
 
-			return new ArrayList<>(result.at("data").asCollectionOf(HealthData.class).get());
+			return result.at("data").asCollectionOf(FaunaResponse.class).get().stream().map(FaunaResponse::convert).collect(Collectors.toList());
 		} catch (MalformedURLException | ExecutionException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}

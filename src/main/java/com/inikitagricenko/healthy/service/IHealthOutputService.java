@@ -10,4 +10,6 @@ public interface IHealthOutputService {
 	HealthData responseHealth(String userId, Coordinates coordinates);
 
 	List<HealthData> responseAllHealth(Coordinates coordinates);
+
+	List<HealthData> responseAllHealth(String userId, Coordinates coordinates);
 }

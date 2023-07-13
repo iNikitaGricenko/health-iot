@@ -5,7 +5,6 @@ import com.inikitagricenko.healthy.exception.DataNotFound;
 import com.inikitagricenko.healthy.model.Coordinates;
 import com.inikitagricenko.healthy.model.HealthData;
 import com.inikitagricenko.healthy.repository.HealthRepository;
-import com.inikitagricenko.healthy.repository.HeathDataFaunaGateway;
 import com.inikitagricenko.healthy.repository.HeathDataFaunaGateway.FaunaResponse;
 import com.inikitagricenko.healthy.service.IGeoLocationService;
 import com.inikitagricenko.healthy.service.IHealthOutputService;
@@ -42,12 +41,18 @@ public class HealthService implements IHealthProcessService, IHealthOutputServic
 	@Override
 	public HealthData responseHealth(String ref, Coordinates coordinates) {
 		String countryCode = geoLocationService.getCoordinates(coordinates.getLatitude(), coordinates.getLongitude()).getCountryCode();
-		return healthRepository.findById(ref, countryCode).orElseThrow(DataNotFound::new).convert();
+		return healthRepository.findById(ref, countryCode).orElseThrow(DataNotFound::new);
 	}
 
 	@Override
 	public List<HealthData> responseAllHealth(Coordinates coordinates) {
 		String countryCode = geoLocationService.getCoordinates(coordinates.getLatitude(), coordinates.getLongitude()).getCountryCode();
-		return healthRepository.findAll(countryCode).stream().map(FaunaResponse::convert).collect(Collectors.toList());
+		return healthRepository.findAll(countryCode);
+	}
+
+	@Override
+	public List<HealthData> responseAllHealth(String userId, Coordinates coordinates) {
+		String countryCode = geoLocationService.getCoordinates(coordinates.getLatitude(), coordinates.getLongitude()).getCountryCode();
+		return healthRepository.findAllByUser(userId, countryCode);
 	}
 }

@@ -36,4 +36,9 @@ public class HealthyController {
 		return iHealthOutputService.responseAllHealth(coordinates);
 	}
 
+	@GetMapping(value = "/user/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public List<HealthData> getAllByUserId(@Valid @NotNull @NotBlank @PathVariable("userId") String userId, @Valid @RequestBody Coordinates coordinates) {
+		return iHealthOutputService.responseAllHealth(userId, coordinates);
+	}
+
 }
